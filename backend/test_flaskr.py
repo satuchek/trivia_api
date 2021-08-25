@@ -42,7 +42,7 @@ class TriviaTestCase(unittest.TestCase):
         }
 
         self.next_question = {
-            'previous questions': [],
+            'previous_questions': [],
             'quiz_category': 'Art'
         }
     
@@ -57,7 +57,7 @@ class TriviaTestCase(unittest.TestCase):
 
     def test_get_success_categories(self):
         print(""" Test GET /categories success """)
-        res = self.client.get('/categories')
+        res = self.client().get('/categories')
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
@@ -80,9 +80,9 @@ class TriviaTestCase(unittest.TestCase):
 
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
-        self.assertTrue(data['total_questions'])
+        self.assertTrue(data['totalQuestions'])
         self.assertTrue(data['categories'])
-        self.assertTrue(data['currentCategory'])
+        self.assertEqual(data['currentCategory'], '')
         self.assertTrue(len(data['questions']))
 
     def test_404_requesting_beyond_valid_page(self):
@@ -100,7 +100,7 @@ class TriviaTestCase(unittest.TestCase):
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
-        self.assertTrue(data['total_questions'])
+        self.assertTrue(data['totalQuestions'])
         self.assertTrue(data['currentCategory'])
         self.assertEqual(len(data['questions']), 3)
     
@@ -132,7 +132,7 @@ class TriviaTestCase(unittest.TestCase):
 
     def test_quizzes_next_question(self):
         print("""Test POST /quizzes success """)
-        res = self.client().post('/questions', json=self.next_question)
+        res = self.client().post('/quizzes', json=self.next_question)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
@@ -146,9 +146,9 @@ class TriviaTestCase(unittest.TestCase):
         res = self.client().post('/quizzes')
         data = json.loads(res.data)
 
-        self.assertEqual(res.status_code, 422)
+        self.assertEqual(res.status_code, 400)
         self.assertEqual(data['success'], False)
-        self.assertEqual(data['message'], 'unprocessable') 
+        self.assertEqual(data['message'], 'bad request') 
     
     def test_post_success_questions_add(self):
         print("""Test POST /questions add success """)
