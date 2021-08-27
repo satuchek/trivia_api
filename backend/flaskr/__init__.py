@@ -107,7 +107,7 @@ def create_app(test_config=None):
 
 
   '''
-  @TODO: 
+  @DONE: 
   Create an endpoint to POST a new question, 
   which will require the question and answer text, 
   category, and difficulty score.
@@ -121,16 +121,30 @@ def create_app(test_config=None):
     request_data = request.get_json()
     if request_data is None:
         abort(400)
-    print(request_data)
-    if 'question' not in request_data:
-      print("Post search ", request_data.get('searchTerm'))
-    else:
-      print("Post question ", request_data.get('question'))
-    return jsonify({'success':True})
+    try:
+      if 'question' not in request_data:
+        selection = Question.query.order_by(Question.id).filter(Question.question.ilike('%{}%'.format(request_data.get('searchTerm', None))))
+        questions = [question.format() for question in selection]
+        return jsonify({
+          'success': True,
+          'questions': questions,
+          'totalQuestions': len(questions),
+          'currentCategory': ''
+        })
+      else:
+        new_question = request_data.get('question')
+        new_answer = request_data.get('answer')
+        new_difficulty = request_data.get('difficulty')
+        new_category = request_data.get('category')
+        question = Question(question=new_question, answer=new_answer, difficulty=new_difficulty, category=new_category)
+        question.insert()
+        return jsonify({'success':True})
+    except:
+      abort(422)
     
 
   '''
-  @TODO: 
+  @DONE: 
   Create a POST endpoint to get questions based on a search term. 
   It should return any questions for whom the search term 
   is a substring of the question. 
@@ -164,7 +178,7 @@ def create_app(test_config=None):
       })
 
   '''
-  @TODO: 
+  @DONE: 
   Create a POST endpoint to get questions to play the quiz. 
   This endpoint should take category and previous question parameters 
   and return a random questions within the given category, 
@@ -176,12 +190,23 @@ def create_app(test_config=None):
   '''
   @app.route('/quizzes', methods=['POST'])
   def get_next_question():
-    request_data = request.get_json()
-    if request_data is None:
-        abort(400)
-    if 'previous_questions' in request_data:
-      print("Previous questions ", request_data['previous_questions'])
-    return jsonify({'success':True})
+    try:
+      
+      request_data = request.get_json()
+      category_id = request_data.get('quiz_category')['id']
+      previous_qs = request_data.get('previous_questions')
+      selection = Question.query.filter(Question.category == category_id).filter(~Question.id.in_(previous_qs)).first()
+      question = None
+      if selection is not None:
+        question = selection.format()   
+      return jsonify({
+        'success': True,
+        'question': question
+      })
+      
+    except:
+      abort(400)
+
 
   '''
   @DONE: 
@@ -218,6 +243,14 @@ def create_app(test_config=None):
       "error": 400,
       "message": "bad request"
       }), 400
+  
+  @app.errorhandler(400)
+  def interal_server_error(error):
+    return jsonify({
+      "success": False, 
+      "error": 500,
+      "message": "internal server error"
+      }), 500
   
   return app
 
