@@ -33,6 +33,7 @@ def create_app(test_config=None):
   def after_request(response):
     response.headers.add('Access-Controll-Allow-Headers', 'Content-Type,Authorization,true')
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
   
   
 
@@ -193,14 +194,13 @@ def create_app(test_config=None):
   @app.route('/quizzes', methods=['POST'])
   def get_next_question():
     try:
-      
       request_data = request.get_json()
       category_id = request_data.get('quiz_category')['id']
       previous_qs = request_data.get('previous_questions')
       selection = Question.query.filter(Question.category == category_id).filter(~Question.id.in_(previous_qs)).first()
       question = None
       if selection is not None:
-        question = selection.format()   
+        question = selection.format()  
       return jsonify({
         'success': True,
         'question': question
@@ -246,7 +246,7 @@ def create_app(test_config=None):
       "message": "bad request"
       }), 400
   
-  @app.errorhandler(400)
+  @app.errorhandler(500)
   def interal_server_error(error):
     return jsonify({
       "success": False, 
