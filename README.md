@@ -1,6 +1,6 @@
 # Trivia API Project
 
-This project is a virtual bookshelf for Udacity students. Students are able to add their books to the bookshelf, give them a rating, update the rating and search through their book lists. As a part of the Fullstack Nanodegree, it serves as a practice module for lessons from Course 2: API Development and Documentation. By completing this project, students learn and apply their skills structuring and implementing well formatted API endpoints that leverage knowledge of HTTP and API development best practices. 
+This project is a trivia game simulator for the Udacity Fullstack WebDevelopment nanodegree. You can add questions and play a trivia game where you will choose a category and gain points for how many questions you answer correctly.
 
 All backend code follows [PEP8 style guidelines](https://www.python.org/dev/peps/pep-0008/). 
 
