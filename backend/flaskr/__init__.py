@@ -1,6 +1,7 @@
 import os
 from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import func
 from flask_cors import CORS
 import random
 
@@ -8,14 +9,13 @@ from models import setup_db, Question, Category
 
 QUESTIONS_PER_PAGE = 10
 
-def paginate_questions(request, selection):
+def paginate_questions(request):
   page = request.args.get('page', 1, type=int)
   start = ( page - 1 ) * QUESTIONS_PER_PAGE
-  end = start + QUESTIONS_PER_PAGE
+  selection = Question.query.order_by(Question.id).limit(10).offset(start)
   questions = [ question.format() for question in selection ]
-  current_questions = questions[start:end]
 
-  return current_questions
+  return questions
 
 def create_app(test_config=None):
   # create and configure the app
@@ -71,8 +71,7 @@ def create_app(test_config=None):
   '''
   @app.route('/questions')
   def get_questions():
-    selection = Question.query.order_by(Question.id).all()
-    current_questions = paginate_questions(request, selection)
+    current_questions = paginate_questions(request)
     if len(current_questions) == 0:
       abort(404)
     selection = Category.query.all()
@@ -100,9 +99,10 @@ def create_app(test_config=None):
       question = Question.query.filter(Question.id == question_id).one_or_none()
       if question is None:
         abort(404)
+      deleted_id = question.id
       question.delete()
       
-      return jsonify({'success':True})
+      return jsonify({'success':True, 'id': deleted_id})
     except:
       abort(422)
 
@@ -197,7 +197,11 @@ def create_app(test_config=None):
       request_data = request.get_json()
       category_id = request_data.get('quiz_category')['id']
       previous_qs = request_data.get('previous_questions')
-      selection = Question.query.filter(Question.category == category_id).filter(~Question.id.in_(previous_qs)).first()
+      # handle special case:
+      if category_id == 0:
+        selection = Question.query.filter(~Question.id.in_(previous_qs)).order_by(func.random()).first()
+      else:
+        selection = Question.query.filter(Question.category == category_id).filter(~Question.id.in_(previous_qs)).order_by(func.random()).first()
       question = None
       if selection is not None:
         question = selection.format()  

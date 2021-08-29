@@ -220,12 +220,13 @@ The API will return three error types when requests fail:
 
 #### DELETE /questions/{question_id}
 - General:
-    - Deletes the question of the given ID if it exists. Returns appropriate HTTP status code.
+    - Deletes the question of the given ID if it exists. Returns appropriate HTTP status code and the ID of the question deleted.
     - Request Args: question id - integer
 - `curl -X DELETE http://127.0.0.1:5000/questions/21`
 ```
 {
-  "success": true
+  "success": true,
+  "id": 21
 }
 ```
 #### POST /quizzes
